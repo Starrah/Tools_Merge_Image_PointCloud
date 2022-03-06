@@ -2,6 +2,8 @@
  @leofansq
  Main function
 """
+import sys
+# sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 import cv2
 import numpy as np
 
@@ -16,9 +18,9 @@ from func import find_files, cal_proj_matrix, cal_proj_matrix_raw, load_img, loa
 #**********************************************************#
 ################## FILE PATH ###################
 # Calib File
-CALIB_TYPE = 1      # 0:All parameters in one file. e.g. KITTI    1: Seperate into two files. e.g. KITTI raw
+CALIB_TYPE = 0      # 0:All parameters in one file. e.g. KITTI    1: Seperate into two files. e.g. KITTI raw
 # if CALIB_TYPE == 0
-CALIB = "./calib/000000.txt"
+CALIB = "./calib/000001.txt"
 # if CALIB_TYPE == 1    
 CAM2CAM = "./calib/calib_cam_to_cam.txt"
 LIDAR2CAM = "./calib/calib_velo_to_cam.txt"
@@ -34,7 +36,7 @@ SBEV_PATH = "./result/bev/"
 SFV_PATH = "./result/fv/"
 
 ################# PARAMETER ####################
-CAM_ID = 2
+CAM_ID = 0
 
 #**********************************************************#
 #                     Main Function                        #
@@ -60,7 +62,7 @@ def main():
         pc = load_lidar(pc_path)
 
         # Project & Generate Image & Save
-        points = project_lidar2img(img, pc, p_matrix)
+        points = project_lidar2img(img, pc, p_matrix, debug=True)
 
         pcimg = img.copy()
         depth_max = np.max(pc[:,0])
@@ -76,15 +78,15 @@ def main():
         save_pcd(SPC_PATH + img_name[:-4] + ".pcd", pc_color)
 
         # BEV
-        img_bev = np.zeros((800, 700, 3))
+        img_bev = np.zeros((2000, 2000, 3))
         for i in pc_color:
-            img_bev[-int(i[0]*10)+799, int(-i[1]*10)+350] = [i[5], i[4], i[3]]
+            img_bev[-int(i[0]*10)+1999, int(-i[1]*10)+1000] = [i[5], i[4], i[3]]
         cv2.imwrite(SBEV_PATH+img_name[:-4]+"_bev.png", img_bev)
 
         # FV
-        img_fv = np.zeros((80,700,3))
+        img_fv = np.zeros((1000,2000,3))
         for i in pc_color:
-            img_fv[-int(i[2]*10+40), int(-i[1]*10)+350] = [i[5], i[4], i[3]]
+            img_fv[-int(i[2]*10+500), int(-i[1]*10)+1000] = [i[5], i[4], i[3]]
         cv2.imwrite(SFV_PATH+img_name[:-4]+"_fv.png", img_fv)
         
         # Time Cost

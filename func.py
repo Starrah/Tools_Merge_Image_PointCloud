@@ -40,6 +40,7 @@ def show_img(name, img):
     """
     cv2.namedWindow(name, 0)
     cv2.imshow(name, img)
+    cv2.waitKey(50)
 
 def find_files(directory, pattern):
     """
@@ -277,11 +278,13 @@ def project_lidar2img(img, pc, p_matrix, debug=False):
 
     # Plot
     if debug:
+        img_copy = img.copy()
         depth_max = np.max(pc[:,0])
         for idx,i in enumerate(points):
             color = int((pc[idx,0]/depth_max)*255)
-            cv2.rectangle(img, (int(i[0]-1),int(i[1]-1)), (int(i[0]+1),int(i[1]+1)), (0, 0, color), -1)
-        show_img("Test", img)
+            cv2.rectangle(img_copy, (int(i[0]-1),int(i[1]-1)), (int(i[0]+1),int(i[1]+1)), (0, 0, color), -1)
+        show_img("Test", img_copy)
+        
 
     return points
 
@@ -322,17 +325,18 @@ def save_pcd(filename, pc_color):
     f.write("VERSION 0.7\n")
     f.write("FIELDS x y z rgb\n")
     f.write("SIZE 4 4 4 4\n")
-    f.write("TYPE F F F F\n")
+    f.write("TYPE F F F U\n")
     f.write("COUNT 1 1 1 1\n")
+    f.write("WIDTH {}\n".format(pc_color.shape[0]))
     f.write("WIDTH {}\n".format(pc_color.shape[0]))
     f.write("HEIGHT 1\n")
     f.write("POINTS {}\n".format(pc_color.shape[0]))
     f.write("DATA ascii\n")
 
     for i in pc_color:
-        # rgb = (int(i[3])<<16) | (int(i[4])<<8) | (int(i[5]) | 1<<24)
-        # f.write("{:.6f} {:.6f} {:.6f} {}\n".format(i[0],i[1],i[2],rgb))
-        f.write("{:.6f} {:.6f} {:.6f} {} {} {}\n".format(i[0],i[1],i[2],i[3],i[4],i[5]))
+        rgb = (int(i[3])<<16) | (int(i[4])<<8) | (int(i[5]) | 1<<24)
+        f.write("{:.6f} {:.6f} {:.6f} {}\n".format(i[0],i[1],i[2],rgb))
+        # f.write("{:.6f} {:.6f} {:.6f} {}\n".format(i[0],i[1],i[2],i[3],i[4],i[5]))
     
     f.close()
 
